@@ -4,6 +4,7 @@ export interface PlanetData {
   distance: number;
   orbitalPeriod: number; // in years (scaled)
   rotationPeriod: number; // in days (scaled)
+  axialTilt: number; // in degrees
   texture: string;
   color: string;
   description: string;
@@ -20,6 +21,7 @@ export const PLANETS: PlanetData[] = [
     distance: 15,
     orbitalPeriod: 0.24,
     rotationPeriod: 58.6,
+    axialTilt: 0.03,
     texture: "/textures/mercury.png",
     color: "#A5A5A5",
     description: "The smallest planet in our solar system and closest to the Sun—is only slightly larger than Earth's Moon.",
@@ -33,6 +35,7 @@ export const PLANETS: PlanetData[] = [
     distance: 22,
     orbitalPeriod: 0.62,
     rotationPeriod: -243, // Retrograde
+    axialTilt: 177.36,
     texture: "/textures/venus.png",
     color: "#E3BB76",
     description: "Spinning slowly in the opposite direction from most planets. Venus is the hottest planet in our solar system.",
@@ -46,6 +49,7 @@ export const PLANETS: PlanetData[] = [
     distance: 30,
     orbitalPeriod: 1,
     rotationPeriod: 1,
+    axialTilt: 23.44,
     texture: "/textures/earth.png",
     color: "#2271B3",
     description: "Our home planet is the only place we know of so far that’s inhabited by living things.",
@@ -59,6 +63,7 @@ export const PLANETS: PlanetData[] = [
     distance: 40,
     orbitalPeriod: 1.88,
     rotationPeriod: 1.03,
+    axialTilt: 25.19,
     texture: "/textures/mars.png",
     color: "#E27B58",
     description: "Mars is a dusty, cold, desert world with a very thin atmosphere.",
@@ -72,6 +77,7 @@ export const PLANETS: PlanetData[] = [
     distance: 65,
     orbitalPeriod: 11.86,
     rotationPeriod: 0.41,
+    axialTilt: 3.13,
     texture: "/textures/jupiter.png",
     color: "#D39C7E",
     description: "Jupiter is more than twice as massive than the other planets of our solar system combined.",
@@ -85,6 +91,7 @@ export const PLANETS: PlanetData[] = [
     distance: 90,
     orbitalPeriod: 29.45,
     rotationPeriod: 0.45,
+    axialTilt: 26.73,
     texture: "/textures/saturn.png",
     color: "#C5AB6E",
     description: "Adorned with a dazzling, complex system of icy rings, Saturn is unique in our solar system.",
@@ -99,12 +106,16 @@ export const PLANETS: PlanetData[] = [
     distance: 120,
     orbitalPeriod: 84.01,
     rotationPeriod: -0.72, // Retrograde
+    axialTilt: 97.77,
     texture: "/textures/uranus.png",
     color: "#B5E3E3",
-    description: "Uranus is the only planet whose equator is nearly at a right angle to its orbit.",
+    description: "Uranus has an extreme axial tilt of 97.77 degrees, rotating on its side and rolling like a ball as it orbits the Sun.",
     radiusKm: 25362,
     distanceFromSun: 2872.5,
-    funFacts: ["Uranus rotates on its side.", "It was the first planet found with the aid of a telescope."],
+    funFacts: [
+      "Uranus has an extreme axial tilt of 97.77°, rotating on its side and rolling like a ball around the Sun.",
+      "Because of its unique orientation, each pole gets 42 years of continuous sunlight followed by 42 years of darkness."
+    ],
   },
   {
     name: "Neptune",
@@ -112,6 +123,7 @@ export const PLANETS: PlanetData[] = [
     distance: 145,
     orbitalPeriod: 164.8,
     rotationPeriod: 0.67,
+    axialTilt: 28.32,
     texture: "/textures/neptune.png",
     color: "#6081FF",
     description: "Dark, cold, and whipped by supersonic winds, ice giant Neptune is the eighth and most distant planet.",

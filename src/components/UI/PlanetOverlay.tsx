@@ -3,7 +3,13 @@
 import React from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useSolarSystem } from "../../hooks/useSolarSystem";
-import { X, Globe, Ruler, Timer, Zap } from "lucide-react";
+import { X, Globe, Ruler, Timer, Zap, Compass, Info as InfoIcon } from "lucide-react";
+import { clsx, type ClassValue } from "clsx";
+import { twMerge } from "tailwind-merge";
+
+function cn(...inputs: ClassValue[]) {
+  return twMerge(clsx(inputs));
+}
 
 export default function PlanetOverlay() {
   const { selectedPlanet, setSelectedPlanet } = useSolarSystem();
@@ -20,7 +26,7 @@ export default function PlanetOverlay() {
           {/* Close button */}
           <button 
             onClick={() => setSelectedPlanet(null)}
-            className="absolute top-6 right-6 text-white/40 hover:text-white transition-colors"
+            className="absolute top-6 right-6 text-white/40 hover:text-white transition-colors cursor-pointer"
           >
             <X size={24} />
           </button>
@@ -80,17 +86,24 @@ export default function PlanetOverlay() {
                 value={`${Math.abs(selectedPlanet.rotationPeriod)} Days`}
                 delay={0.9}
               />
+              <StatCard 
+                icon={<Compass size={18} className="text-cyan-400" />}
+                label="Axial Tilt / Inclination"
+                value={`${selectedPlanet.axialTilt}°`}
+                delay={1.0}
+                className="col-span-2 border-cyan-500/20 bg-linear-to-r from-cyan-950/20 to-transparent"
+              />
             </div>
 
             {/* Fun Facts */}
             <motion.div
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 1.0 }}
+              transition={{ delay: 1.1 }}
               className="flex flex-col gap-4"
             >
               <h3 className="text-white font-bold text-xl flex items-center gap-2">
-                <Info size={20} className="text-blue-400" />
+                <InfoIcon size={20} className="text-blue-400" />
                 Did you know?
               </h3>
               <div className="flex flex-col gap-3">
@@ -108,13 +121,25 @@ export default function PlanetOverlay() {
   );
 }
 
-function StatCard({ icon, label, value, delay }: { icon: React.ReactNode, label: string, value: string, delay: number }) {
+function StatCard({ 
+  icon, 
+  label, 
+  value, 
+  delay,
+  className 
+}: { 
+  icon: React.ReactNode, 
+  label: string, 
+  value: string, 
+  delay: number,
+  className?: string 
+}) {
   return (
     <motion.div 
       initial={{ opacity: 0, scale: 0.9 }}
       animate={{ opacity: 1, scale: 1 }}
       transition={{ delay }}
-      className="bg-white/5 border border-white/5 p-4 rounded-2xl flex flex-col gap-2 shadow-xl"
+      className={cn("bg-white/5 border border-white/5 p-4 rounded-2xl flex flex-col gap-2 shadow-xl", className)}
     >
       <div className="flex items-center gap-2 text-white/40 text-[10px] uppercase tracking-widest font-bold">
         {icon}
@@ -125,8 +150,4 @@ function StatCard({ icon, label, value, delay }: { icon: React.ReactNode, label:
       </div>
     </motion.div>
   );
-}
-
-function Info({ size, className }: { size: number, className?: string }) {
-  return <Zap size={size} className={className} />; // Reusing Zap or Info icon
 }

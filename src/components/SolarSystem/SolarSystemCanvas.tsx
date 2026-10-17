@@ -1,6 +1,6 @@
 "use client";
 
-import React, { Suspense, useEffect, useRef } from "react";
+import React, { Suspense, useRef, useEffect } from "react";
 import { Canvas, useThree, useFrame } from "@react-three/fiber";
 import { OrbitControls, PerspectiveCamera } from "@react-three/drei";
 import * as THREE from "three";
@@ -10,67 +10,96 @@ import Sun from "./Sun";
 import Planet from "./Planet";
 import Background from "./Background";
 import { AsteroidBeltCorrected as AsteroidBelt } from "./Asteroids";
-import { useSolarSystem } from "../../hooks/useSolarSystem";
+import { useSolarSystem, simClock } from "../../hooks/useSolarSystem";
+
+function SimulationTimeManager() {
+  const { isPaused, timeScale } = useSolarSystem();
+
+  useFrame((_, delta) => {
+    if (!isPaused) {
+      simClock.time += delta * timeScale;
+    }
+  });
+
+  return null;
+}
 
 function CameraController() {
   const { camera, controls, scene } = useThree();
   const { selectedPlanet } = useSolarSystem();
-  const lastSelected = useRef<string | null>(null);
+  const prevTargetPos = useRef(new THREE.Vector3());
+  const hasInitialized = useRef(false);
 
-  useFrame(() => {
-    if (selectedPlanet) {
-      // Find the object by name in the scene
-      const planetObj = scene.getObjectByName(selectedPlanet.name);
-      if (planetObj && controls) {
-        const worldPosition = new THREE.Vector3();
-        planetObj.getWorldPosition(worldPosition);
-        
-        // Smoothly follow the target
-        // @ts-ignore
-        controls.target.lerp(worldPosition, 0.1);
-      }
-    }
-  });
-
+  // Smoothly glide camera on selection change
   useEffect(() => {
+    let targetPos = new THREE.Vector3();
+    let cameraOffset = new THREE.Vector3(140, 90, 140);
+
     if (selectedPlanet) {
       const planetObj = scene.getObjectByName(selectedPlanet.name);
       if (planetObj) {
-        const worldPosition = new THREE.Vector3();
-        planetObj.getWorldPosition(worldPosition);
-
-        gsap.to(camera.position, {
-          x: worldPosition.x + selectedPlanet.radius * 4,
-          y: worldPosition.y + selectedPlanet.radius * 2,
-          z: worldPosition.z + selectedPlanet.radius * 4,
-          duration: 1.5,
-          ease: "power3.inOut",
-        });
+        planetObj.getWorldPosition(targetPos);
+        cameraOffset.set(
+          selectedPlanet.radius * 4,
+          selectedPlanet.radius * 2,
+          selectedPlanet.radius * 4
+        );
       }
-      lastSelected.current = selectedPlanet.name;
-    } else if (lastSelected.current) {
-      // Reset view to Sun
-      gsap.to(camera.position, {
-        x: 120,
-        y: 80,
-        z: 120,
-        duration: 1.5,
-        ease: "power3.inOut",
-      });
-      
-      if (controls) {
-        // @ts-ignore
-        gsap.to(controls.target, {
-          x: 0,
-          y: 0,
-          z: 0,
-          duration: 1.5,
-          ease: "power3.inOut",
-        });
+    } else {
+      const sunObj = scene.getObjectByName("Sun");
+      if (sunObj) {
+        sunObj.getWorldPosition(targetPos);
       }
-      lastSelected.current = null;
     }
-  }, [selectedPlanet, camera, controls]);
+
+    gsap.to(camera.position, {
+      x: targetPos.x + cameraOffset.x,
+      y: targetPos.y + cameraOffset.y,
+      z: targetPos.z + cameraOffset.z,
+      duration: 1.2,
+      ease: "power2.inOut",
+    });
+
+    if (controls) {
+      // @ts-ignore
+      gsap.to(controls.target, {
+        x: targetPos.x,
+        y: targetPos.y,
+        z: targetPos.z,
+        duration: 1.2,
+        ease: "power2.inOut",
+      });
+    }
+
+    prevTargetPos.current.copy(targetPos);
+  }, [selectedPlanet, camera, controls, scene]);
+
+  // Keep camera locked and traveling with the target as it corkscrews through space
+  useFrame(() => {
+    let targetObj: THREE.Object3D | undefined;
+    if (selectedPlanet) {
+      targetObj = scene.getObjectByName(selectedPlanet.name);
+    } else {
+      targetObj = scene.getObjectByName("Sun");
+    }
+
+    if (targetObj && controls) {
+      const currentTargetPos = new THREE.Vector3();
+      targetObj.getWorldPosition(currentTargetPos);
+
+      if (hasInitialized.current) {
+        const delta = currentTargetPos.clone().sub(prevTargetPos.current);
+        camera.position.add(delta);
+        // @ts-ignore
+        controls.target.add(delta);
+      } else {
+        hasInitialized.current = true;
+        // @ts-ignore
+        controls.target.copy(currentTargetPos);
+      }
+      prevTargetPos.current.copy(currentTargetPos);
+    }
+  });
 
   return null;
 }
@@ -82,7 +111,7 @@ export default function SolarSystemCanvas() {
     <div className="w-full h-full bg-black">
       <Canvas shadows gl={{ antialias: true }}>
         <Suspense fallback={null}>
-          <PerspectiveCamera makeDefault position={[120, 80, 120]} far={10000} />
+          <PerspectiveCamera makeDefault position={[140, 90, 140]} far={20000} />
           <OrbitControls 
             enableDamping={true}
             dampingFactor={0.05}
@@ -90,12 +119,13 @@ export default function SolarSystemCanvas() {
             enablePan={true} 
             enableZoom={true} 
             makeDefault 
-            maxDistance={800}
+            maxDistance={2000}
             minDistance={10}
             autoRotate={autoRotate}
             autoRotateSpeed={0.5}
           />
           
+          <SimulationTimeManager />
           <Background />
           <Sun />
           <AsteroidBelt />
